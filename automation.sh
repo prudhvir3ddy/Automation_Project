@@ -40,3 +40,42 @@ s3://${s3_bucket}/${myname}-httpd-logs-${timestamp}.tar
 if [ $? -eq 0 ];then
 	echo "logs archive file successfully uploaded to storage s3://${s3_bucket}"
 fi
+
+# create inventory file
+if [ -e /var/www/html/inventory.html ]
+then
+	echo "Inventory file found"
+else 
+	touch /var/www/html/inventory.html
+	echo "<table>
+    <tr>
+        <th>Log Type</th>
+        <th>Time Created</th> 
+        <th>Type</th>  
+        <th>Size</th>
+    </tr>
+    </table>" >> /var/www/html/inventory.html
+
+fi
+ 
+sed -i '$d' /var/www/html/inventory.html
+
+echo "<tr>
+        <td>httpd-logs</td>
+        <td>${timestamp}</td>
+        <td>tar</td>
+        <td>`du -h /tmp/${myname}-httpd-logs-${timestamp}.tar | awk '{print $1}'`</td>
+    </tr>
+    </table>" >>  /var/www/html/inventory.html
+
+
+if [ -e /etc/cron.d/automation ]
+then
+        echo "cron job found"
+else
+        touch /etc/cron.d/automation
+        echo "0 0 * * * root /root/Automation_Project/automation.sh" > /etc/cron.d/automation
+        echo "new cron job created"
+fi
+
+exit 0
